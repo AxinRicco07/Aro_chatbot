@@ -1,0 +1,76 @@
+/* Make the chat page span the entire viewport */
+
+.chatpage {
+  display: flex;
+  flex-direction: column;
+  height: 80vh; 
+  background-image: url('../Components/Assest/background.jpg'); /* Path to your image */
+  background-size: cover; /* Ensures the image covers the entire element */
+  background-position: center; /* Centers the image */
+  background-repeat: no-repeat; 
+}
+
+
+.chat-container {
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+  height:80vh;
+  border-bottom: 1px solid #ccc;
+  display: flex;
+  overflow-y: auto;
+  flex-direction: column; /* Stack messages vertically */
+}
+
+.message {
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  max-width: 80%; /* Limit the width of the message container */
+  word-wrap: break-word; /* Wrap long words */
+  display: flex;
+  align-items: center;
+}
+
+.person-a {
+  background-color: #e1ffc7;
+  align-self: flex-end; /* Align message to the right */
+  margin-left: auto; /* Ensure message is pushed to the right */
+}
+
+.person-b {
+  background-color: #f1f0f0;
+  align-self: flex-start; /* Align message to the left */
+  margin-right: auto; /* Ensure message is pushed to the left */
+}
+
+.input-container {
+  display: flex;
+  border-top: 1px solid #ccc;
+  padding: 10px; /* Adjust padding as needed */
+}
+
+input {
+  flex: auto;/* Allow the input to take up available space */
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+
+  margin-right: 10px;
+}
+
+button {
+  padding: 8px 20px; /* Adjust padding to match the input height */
+  border: 1px solid #0056b3;
+  border-radius: 20px;
+  background-color: #007bff;
+  color: white;
+  font-size: 14px; /* Adjust font size */
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
