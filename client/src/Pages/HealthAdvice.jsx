@@ -27,13 +27,14 @@ const HealthAdvice = () => {
   return (
     <div style={{ textAlign: 'center', marginTop: '50px' }}>
       <h1>Random Health Advice</h1>
-      <input
-        type="text"
-        placeholder="Click the button to get advice"
-        value={advice}
-        readOnly
-        style={{ padding: '10px', width: '300px', marginBottom: '20px' }}
-      />
+      <h2 style={{ 
+        fontWeight: 'bold', 
+        fontSize: '24px', 
+        fontFamily: '"Comic Sans MS", cursive, sans-serif',
+        color: '#333' // Optional: Add color if desired
+      }}>
+        {advice || 'Click the button to get advice'}
+      </h2>
       <br />
       <button onClick={fetchAdvice} style={{ padding: '10px 20px' }}>
         Get Health Advice
@@ -45,3 +46,4 @@ const HealthAdvice = () => {
 };
 
 export default HealthAdvice;
+
