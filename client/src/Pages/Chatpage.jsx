@@ -1,32 +1,66 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import sendIcon from "../Components/Assest/sendIcon.png"
+import mic from "../Components/Assest/mic.png"
 
 function App() {
-  const [messages, setMessages] = useState([
-    { type: 'bot', text: 'Hello! My name is Aro, your medical chatbot. How can I assist you today?' }
-  ]);
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);  // State to track loading
+  const [loading, setLoading] = useState(false);
   const chatBoxRef = useRef(null);
+  const recognitionRef = useRef(null);  // Ref for SpeechRecognition instance
 
-  const sendMessage = () => {
-    if (input.trim()) {
-      // Add the user's message to the messages array
-      const newMessage = { type: 'user', text: input };
-      setMessages((prevMessages) => [...prevMessages, newMessage]);
-      setInput('');  // Clear the input field
-      setLoading(true);  // Set loading to true while waiting for the response
+  useEffect(() => {
+    // Initialize SpeechRecognition
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+      recognitionRef.current.lang = 'en-US';
 
-      // Scroll the chatbox to the bottom
-      chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
-
-      // Prepare the message object to be sent to the server
-      const messagePayload = {
-        message: input,
-        history: []  // Sending an empty history array as per your requirement
+      recognitionRef.current.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setInput(transcript);
+        sendMessage(transcript);
       };
 
-      // Send the message to the server
-      fetch('https://1a0f-117-202-155-207.ngrok-free.app/webhooks/rest/webhook', {
+      recognitionRef.current.onerror = (event) => {
+        console.error('Speech recognition error', event);
+      };
+    }
+
+    const timer = setTimeout(() => {
+      setMessages([
+        { type: 'bot', text: 'Hello! My name is Aro, your medical chatbot. How can I assist you today?' }
+      ]);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  const startListening = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.start();
+    } else {
+      console.warn('SpeechRecognition is not supported in this browser.');
+    }
+  };
+
+  const sendMessage = (text) => {
+    if (text.trim()) {
+      const newMessage = { type: 'user', text: text };
+      setMessages((prevMessages) => [...prevMessages, newMessage]);
+      setInput('');
+      setLoading(true);
+
+      chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
+
+      const messagePayload = {
+        message: text,
+        history: []
+      };
+
+      fetch('https://df06-117-206-123-111.ngrok-free.app/webhooks/rest/webhook', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -36,24 +70,22 @@ function App() {
       .then(response => response.json())
       .then(data => {
         if (data.response) {
-          // Add the server's response to the messages array
           const botMessage = { type: 'bot', text: data.response };
           setMessages((prevMessages) => [...prevMessages, botMessage]);
         }
-        setLoading(false);  // Set loading to false after receiving the response
-        // Scroll the chatbox to the bottom
+        setLoading(false);
         chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
       })
       .catch(error => {
         console.error('Error communicating with server:', error);
-        setLoading(false);  // Set loading to false in case of an error
+        setLoading(false);
       });
     }
   };
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
-      sendMessage();
+      sendMessage(input);
     }
   };
 
@@ -89,11 +121,19 @@ function App() {
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
           />
-          <button
-            className="px-4 py-2 bg-blue-500 text-white rounded-r-lg"
-            onClick={sendMessage}
+           <button
+            className="flex items-center justify-center px-4 py-2"
+            onClick={() => sendMessage(input)}
+            style={{ backgroundColor: 'transparent', border: 'none', padding: 0 }}
           >
-            Send
+            <img src={sendIcon} alt="Send" className="h-6 w-6" />
+          </button>
+          <button
+            className="flex items-center justify-center px-4 py-2"
+            onClick={startListening}
+            style={{ backgroundColor: 'transparent', border: 'none', padding: 0 }}
+          >
+            <img src={mic} alt="Send" className="h-6 w-6" />
           </button>
         </div>
       </footer>
