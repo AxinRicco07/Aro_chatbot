@@ -1,6 +1,9 @@
+// src/App.js
 import React, { useState, useRef, useEffect } from 'react';
-import sendIcon from "../Components/Assest/sendIcon.png"
-import mic from "../Components/Assest/mic.png"
+import Sidebar from '../Components/Sidebar/Sidebar'; // Import the Sidebar component
+import sendIcon from '../Components/Assest/sendIcon.png';
+import mic from '../Components/Assest/mic.png';
+
 
 function App() {
   const [messages, setMessages] = useState([]);
@@ -10,7 +13,6 @@ function App() {
   const recognitionRef = useRef(null);  // Ref for SpeechRecognition instance
 
   useEffect(() => {
-    // Initialize SpeechRecognition
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
       recognitionRef.current = new SpeechRecognition();
@@ -90,53 +92,56 @@ function App() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-100">
-      <main className="flex-grow p-4 overflow-y-auto bg-chat-bg bg-cover bg-center" ref={chatBoxRef}>
-        {messages.map((message, index) => (
-          <div
-            key={index}
-            className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'} mb-4`}
-          >
+    <div className="flex">
+      <Sidebar /> {/* Add Sidebar component here */}
+      <div className="flex flex-col h-screen bg-gray-100 flex-grow">
+        <main className="flex-grow p-4 overflow-y-auto bg-chat-bg bg-cover bg-center" ref={chatBoxRef}>
+          {messages.map((message, index) => (
             <div
-              className={`max-w-xs p-3 rounded-lg ${
-                message.type === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'
-              }`}
+              key={index}
+              className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'} mb-4`}
             >
-              {message.text}
+              <div
+                className={`max-w-xs p-3 rounded-lg ${
+                  message.type === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'
+                }`}
+              >
+                {message.text}
+              </div>
             </div>
+          ))}
+          {loading && (
+            <div className="flex justify-center items-center mb-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-blue-500"></div>
+            </div>
+          )}
+        </main>
+        <footer className="p-4 bg-white shadow-md sticky bottom-0">
+          <div className="flex">
+            <input
+              type="text"
+              className="flex-grow p-2 border border-gray-300 rounded-l-lg focus:outline-none"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={handleKeyPress}
+            />
+            <button
+              className="flex items-center justify-center px-4 py-2"
+              onClick={() => sendMessage(input)}
+              style={{ backgroundColor: 'transparent', border: 'none', padding: 0 }}
+            >
+              <img src={sendIcon} alt="Send" className="h-6 w-6" />
+            </button>
+            <button
+              className="flex items-center justify-center px-4 py-2"
+              onClick={startListening}
+              style={{ backgroundColor: 'transparent', border: 'none', padding: 0 }}
+            >
+              <img src={mic} alt="Mic" className="h-6 w-6" />
+            </button>
           </div>
-        ))}
-        {loading && (
-          <div className="flex justify-center items-center mb-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-blue-500"></div>
-          </div>
-        )}
-      </main>
-      <footer className="p-4 bg-white shadow-md sticky bottom-0">
-        <div className="flex">
-          <input
-            type="text"
-            className="flex-grow p-2 border border-gray-300 rounded-l-lg focus:outline-none"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyPress={handleKeyPress}
-          />
-           <button
-            className="flex items-center justify-center px-4 py-2"
-            onClick={() => sendMessage(input)}
-            style={{ backgroundColor: 'transparent', border: 'none', padding: 0 }}
-          >
-            <img src={sendIcon} alt="Send" className="h-6 w-6" />
-          </button>
-          <button
-            className="flex items-center justify-center px-4 py-2"
-            onClick={startListening}
-            style={{ backgroundColor: 'transparent', border: 'none', padding: 0 }}
-          >
-            <img src={mic} alt="Send" className="h-6 w-6" />
-          </button>
-        </div>
-      </footer>
+        </footer>
+      </div>
     </div>
   );
 }

@@ -2,7 +2,7 @@ import React from 'react';
 import main from '../Components/Assest/main-front.jpg';
 import mainLeft from '../Components/Assest/topping1.jpg';
 import './Landing.css'
-
+import { Link } from 'react-router-dom'
 
 
 const Landing = () => {
@@ -25,7 +25,10 @@ const Landing = () => {
                 </strong>
                 Sweetness on earth and rarest bliss above, These are the fruits of tranquil life of love
               </p>
-              <button id="login_bt">Try now</button>
+              <button id="login_bt">
+                <Link to='/Chat' className=" transition duration-300 " style={{ textDecoration: 'none' }}>
+                Try now
+              </Link></button>
             </div>
             <div className="image">
               <img src={main} alt="toppings" />
