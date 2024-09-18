@@ -1,77 +1,131 @@
-import express from "express";
-import cors from "cors";
+import pkg from 'pg';
+import express from 'express';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import cors from 'cors';
 
-const app = express();
+const { Client } = pkg;
 
-app.use(cors());
-
-const healthAdvices = [
-    { "id": 1, "advice": "Eat your veggies, or they’ll plot against you." },
-    { "id": 2, "advice": "An apple a day keeps anyone away if you throw it hard enough." },
-    { "id": 3, "advice": "Don’t skip breakfast; it’s the most important meal you’ll forget to eat." },
-    { "id": 4, "advice": "Drink more water; your future self will thank you… and stop dehydrating." },
-    { "id": 5, "advice": "Sleep like a baby, but without the crying and diaper changes." },
-    { "id": 6, "advice": "Exercise, because zombies don’t eat fast food." },
-    { "id": 7, "advice": "Stay hydrated, or you’ll end up as dry as your humor." },
-    { "id": 8, "advice": "Laugh more; it’s like jogging for your face." },
-    { "id": 9, "advice": "Stretch, because it’s the only way to reach the top shelf snacks." },
-    { "id": 10, "advice": "Go outside; the Wi-Fi signal might be weak, but the fresh air is strong." },
-    { "id": 11, "advice": "Eat more fiber; your future bathroom breaks will be smoother." },
-    { "id": 12, "advice": "Wash your hands like you just chopped jalapeños and need to remove your contacts." },
-    { "id": 13, "advice": "Take the stairs; it’s the closest thing to mountain climbing for office workers." },
-    { "id": 14, "advice": "Eat your fruits; they’re nature’s candy, minus the wrapper." },
-    { "id": 15, "advice": "Practice yoga, because sometimes bending over backwards is the only option." },
-    { "id": 16, "advice": "Snack wisely, because no one likes a hangry person." },
-    { "id": 17, "advice": "Walk more; your feet won’t mind, but your couch might miss you." },
-    { "id": 18, "advice": "Eat slowly, so your stomach can catch up to your mouth’s enthusiasm." },
-    { "id": 19, "advice": "Take a nap; even your phone battery needs a break." },
-    { "id": 20, "advice": "Dance like no one’s watching… and because it’s cardio." },
-    { "id": 21, "advice": "Stay positive; it’s the best exercise for your mind." },
-    { "id": 22, "advice": "Don’t stress; wrinkles are harder to iron out than clothes." },
-    { "id": 23, "advice": "Eat fish; they’re brain food, but not like zombie brain food." },
-    { "id": 24, "advice": "Limit screen time, unless you’re reading this, of course." },
-    { "id": 25, "advice": "Floss daily, because food isn’t meant to be saved for later." },
-    { "id": 26, "advice": "Take deep breaths; it’s cheaper than therapy." },
-    { "id": 27, "advice": "Eat dark chocolate; it’s practically a salad if you squint." },
-    { "id": 28, "advice": "Get some sunshine; you’re not a vampire, right?" },
-    { "id": 29, "advice": "Drink tea; it’s like a hug in a cup." },
-    { "id": 30, "advice": "Brush your teeth; the minty fresh feeling is worth the two minutes." },
-    { "id": 31, "advice": "Eat nuts; they’re tiny brain boosters that fit in your pocket." },
-    { "id": 32, "advice": "Stay active, so your body doesn’t turn into a permanent chair mold." },
-    { "id": 33, "advice": "Listen to music; it’s like a workout for your soul." },
-    { "id": 34, "advice": "Read more; your brain needs food too." },
-    { "id": 35, "advice": "Stay social; even introverts need a buddy sometimes." },
-    { "id": 36, "advice": "Limit sugar; you’re sweet enough already." },
-    { "id": 37, "advice": "Take the occasional day off; even superheroes need a break." },
-    { "id": 38, "advice": "Keep a journal; it’s cheaper than a therapist." },
-    { "id": 39, "advice": "Stay curious; it’s the key to keeping your brain young." },
-    { "id": 40, "advice": "Eat avocado; it’s green, creamy, and practically a superpower." },
-    { "id": 41, "advice": "Learn to cook; your stomach will thank you." },
-    { "id": 42, "advice": "Wear sunscreen; your future self will appreciate it." },
-    { "id": 43, "advice": "Don’t hold grudges; they’re bad for your health and your sleep." },
-    { "id": 44, "advice": "Stay humble; no one likes a braggart with high cholesterol." },
-    { "id": 45, "advice": "Eat your greens; they’re like tiny soldiers fighting off bad vibes." },
-    { "id": 46, "advice": "Get your steps in; your step counter needs something to count." },
-    { "id": 47, "advice": "Stay organized; your brain likes order, even if your room doesn’t." },
-    { "id": 48, "advice": "Drink coffee; it’s liquid optimism." },
-    { "id": 49, "advice": "Smile more; it’s the cheapest facelift available." },
-    { "id": 50, "advice": "Stay playful; life’s too short to be serious all the time." }
-  ]
-  
-  
-
-app.get('/health-advice', (req, res) => {
-  const randomIndex = Math.floor(Math.random() * healthAdvices.length);
-  const advice = healthAdvices[randomIndex];
-  res.json(advice);
+const db = new Client({
+    user: "postgres",
+    host: "localhost",
+    database: "user_auth_db",
+    password: "123456",
+    port: 5432,
 });
 
-const PORT = 4000;
+await db.connect();
 
-app.listen(PORT, (error) => {
-  if (!error) {
-    console.log(`Server is running on port ${PORT}`);
-  } else {
-    console.log("Error: " + error);
-  }
+// Function to create the notes table if it doesn't exist
+const ensureNotesTableExists = async (userId) => {
+    const query = `
+        CREATE TABLE IF NOT EXISTS notes_${userId} (
+            note_id SERIAL PRIMARY KEY,
+            title VARCHAR(255) NOT NULL,
+            content TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+    `;
+
+    try {
+        await db.query(query);
+        console.log(`Notes table for user ${userId} ensured.`);
+    } catch (err) {
+        console.error('Error ensuring notes table:', err);
+    }
+};
+
+const registerUser = async (name, email, password) => {
+    const checkUserQuery = 'SELECT * FROM users WHERE email = $1';
+    const values = [email];
+    const result = await db.query(checkUserQuery, values);
+
+    if (result.rows.length > 0) {
+        console.log('User already registered.');
+        return;
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const insertUserQuery = `
+        INSERT INTO users (name, email, password)
+        VALUES ($1, $2, $3)
+        RETURNING id;
+    `;
+    const insertValues = [name, email, hashedPassword];
+    const userResult = await db.query(insertUserQuery, insertValues);
+    const userId = userResult.rows[0].id;
+
+    console.log(`User ${name} registered successfully with ID ${userId}.`);
+    await ensureNotesTableExists(userId);
+};
+
+const app = express();
+app.use(express.json());
+app.use(cors());
+
+app.post('/signup', async (req, res) => {
+    const { name, email, password } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    try {
+        const userExists = await db.query('SELECT * FROM users WHERE email = $1', [email]);
+        if (userExists.rows.length > 0) {
+            return res.status(400).send('User already registered');
+        }
+
+        await db.query('INSERT INTO users (name, email, password) VALUES ($1, $2, $3)', [name, email, hashedPassword]);
+        res.status(201).send('User registered successfully');
+    } catch (err) {
+        res.status(500).send('Error registering user');
+    }
+});
+
+app.post('/login', async (req, res) => {
+    const { email, password } = req.body;
+
+    try {
+        const user = await db.query('SELECT * FROM users WHERE email = $1', [email]);
+        if (user.rows.length === 0) {
+            return res.status(400).send('Invalid email or password');
+        }
+
+        const validPassword = await bcrypt.compare(password, user.rows[0].password);
+        if (!validPassword) {
+            return res.status(400).send('Invalid email or password');
+        }
+
+        const token = jwt.sign({ id: user.rows[0].id }, 'your_jwt_secret');
+        res.status(200).json({ token });
+    } catch (err) {
+        res.status(500).send('Error logging in');
+    }
+});
+
+app.get('/notes', async (req, res) => {
+    const token = req.headers['authorization'];
+    try {
+        const decoded = jwt.verify(token, 'your_jwt_secret');
+        const notes = await db.query(`SELECT * FROM notes_${decoded.id}`);
+        res.status(200).json(notes.rows);
+    } catch (error) {
+        res.status(401).send('Invalid token');
+    }
+});
+
+app.post('/notes', async (req, res) => {
+    const token = req.headers['authorization'];
+    try {
+        const decoded = jwt.verify(token, 'your_jwt_secret');
+        const { title, content } = req.body;
+
+        await ensureNotesTableExists(decoded.id); // Ensure table exists before inserting
+        await db.query(`INSERT INTO notes_${decoded.id} (title, content) VALUES ($1, $2)`, [title, content]);
+        res.status(201).send('Note added');
+    } catch (error) {
+        res.status(401).send('Invalid token');
+    }
+});
+
+app.listen(4000, () => {
+    console.log('Server running on port 4000');
 });

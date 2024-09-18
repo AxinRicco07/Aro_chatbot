@@ -12,5 +12,5 @@ code {
 }
 
 @tailwind base;
-@tailwind components;
+@tailwind base;
 @tailwind utilities;

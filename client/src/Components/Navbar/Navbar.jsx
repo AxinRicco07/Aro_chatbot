@@ -16,9 +16,7 @@ const Navbar = () => {
               {menu === "home" && <hr className="w-3/5 mt-1 h-1 bg-indigo-500 rounded-full" />}
             </li>
             <li onClick={() => { setMenu("aboutus") }}>
-              <Link to='/aboutus' className="text-gray-700 hover:text-indigo-500 transition duration-300" style={{ textDecoration: 'none' }}>
-                About Us
-              </Link>
+              
               {menu === "aboutus" && <hr className="w-3/5 mt-1 h-1 bg-indigo-500 rounded-full" />}
             </li>
             <li onClick={() => { setMenu("work") }}>
@@ -45,4 +43,4 @@ const Navbar = () => {
   );
 }
 
-export default Navbar;
+export default Navbar; 
