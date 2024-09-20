@@ -4,6 +4,7 @@ import main from '../Components/Assest/main-front.jpg';
 import mainLeft from '../Components/Assest/topping1.jpg';
 import Footer from '../Components/Footer/Footer';
 import Navbar from '../Components/Navbar/Navbar';
+import { Link } from 'react-router-dom';
 import './Landing.css'; // Keep your existing Landing.css for Landing section
 
 const Landing = () => {
@@ -31,18 +32,18 @@ const Landing = () => {
                 </strong>
                 Sweetness on earth and rarest bliss above, These are the fruits of tranquil life of love
               </p>
-              <button id="login_bt">
-                <a href="#about-us-section" className="transition duration-300" style={{ textDecoration: 'none' }}>
-                  Try now
-                </a>
-              </button>
+              <button type="button" class="rounded-full text-gray-900 bg-gradient-to-r from-red-200 via-red-300 to-yellow-200 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-red-100 dark:focus:ring-red-400 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2">
+              <Link to='Chat' className="text-white" style={{ textDecoration: 'none' }}>
+               Try Now
+              </Link>
+                </button>
             </div>
             <div className="image reveal">
               <img src={main} alt="toppings" />
             </div>
           </div>
         </div>
-        <img className="toppings-bg-left" src={mainLeft} alt="toppings" />
+        
       </div>
 
       {/* About Us Section */}
@@ -64,6 +65,7 @@ const Landing = () => {
             Our mission is to empower you with knowledge and support, helping you make informed decisions about your health. Thank you for choosing Aro. We are here to support you on your journey to better health!
           </p>
         </div>
+        <img className="toppings-bg-left" src={mainLeft} alt="toppings" />
       </div>
       <Footer/>
     </div>

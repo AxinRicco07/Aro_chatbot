@@ -27,6 +27,9 @@ module.exports = {
         ring: 'ring 2s ease-out infinite',
         ball: 'ball 2s ease-out infinite',
       },
+      colors: {
+        serverResponse: '#D1E7FF',  // Add your custom blue color here
+      },
     },
   },
   plugins: [],
