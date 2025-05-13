@@ -7,6 +7,7 @@ import Navbar from '../Components/Navbar/Navbar';
 import { Link } from 'react-router-dom';
 import './Landing.css'; // Keep your existing Landing.css for Landing section
 
+
 const Landing = () => {
 
   // Scroll reveal effect for the about section

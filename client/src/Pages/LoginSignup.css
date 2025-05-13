@@ -229,3 +229,111 @@ input {
 }
 
 
+/* Add these to your existing LoginSignup.css */
+
+/* Social buttons */
+.social-container {
+  margin: 20px 0;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.social-container button.social {
+  border: 1px solid #DDDDDD;
+  border-radius: 50%;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0;
+  height: 40px;
+  width: 40px;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.social-container button.social:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.social-container button.social svg {
+  font-size: 18px;
+  color: #333;
+}
+
+/* Specific social button colors */
+.social-container button.social:nth-child(1):hover {
+  background-color: #3b5998;
+  border-color: #3b5998;
+}
+.social-container button.social:nth-child(1):hover svg {
+  color: white;
+}
+
+.social-container button.social:nth-child(2):hover {
+  background-color: #db4437;
+  border-color: #db4437;
+}
+.social-container button.social:nth-child(2):hover svg {
+  color: white;
+}
+
+.social-container button.social:nth-child(3):hover {
+  background-color: #00a1f1;
+  border-color: #00a1f1;
+}
+.social-container button.social:nth-child(3):hover svg {
+  color: white;
+}
+
+/* Forgot password link */
+.forgot-password {
+  color: #666;
+  font-size: 14px;
+  margin: 10px 0;
+  transition: color 0.3s;
+}
+
+.forgot-password:hover {
+  color: #6c63ff;
+}
+
+/* Form inputs */
+input {
+  background-color: #eee;
+  border: none;
+  padding: 12px 15px;
+  margin: 8px 0;
+  width: 100%;
+  border-radius: 4px;
+  transition: all 0.3s;
+}
+
+input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(108, 99, 255, 0.3);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .container-login {
+    flex-direction: column;
+    height: auto;
+  }
+  
+  .form-container {
+    width: 100%;
+    position: relative;
+  }
+  
+  .overlay-container {
+    display: none;
+  }
+  
+  .container-login.right-panel-active .sign-in-container,
+  .container-login.right-panel-active .sign-up-container {
+    transform: none;
+  }
+}

@@ -3,6 +3,8 @@ import express from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import cors from 'cors';
+import axios from 'axios';
+import xml2js from 'xml2js'
 
 const { Client } = pkg;
 
@@ -15,6 +17,8 @@ const db = new Client({
 });
 
 await db.connect();
+
+
 
 // Function to create the notes table if it doesn't exist
 const ensureNotesTableExists = async (userId) => {
@@ -80,6 +84,80 @@ app.post('/signup', async (req, res) => {
     }
 });
 
+
+
+// Improved PubMed Central API endpoint that handles XML response
+app.get('/api/research-articles', async (req, res) => {
+    try {
+        const { query = 'medicine', maxResults = 10 } = req.query;
+        
+        const response = await axios.get('https://www.ncbi.nlm.nih.gov/pmc/utils/oa/oa.fcgi', {
+            params: {
+                q: query,
+                retmax: maxResults,
+                format: 'pdf'
+            },
+            responseType: 'text' // Get raw response to handle both XML and JSON
+        });
+
+        let articles = [];
+        
+        // Check if response is XML
+        if (response.data.startsWith('<')) {
+            // Parse XML to JSON
+            const parser = new xml2js.Parser({ explicitArray: false });
+            const result = await parser.parseStringPromise(response.data);
+            
+            // Extract records from XML structure
+            if (result.OA && result.OA.records && result.OA.records.record) {
+                const records = Array.isArray(result.OA.records.record) 
+                    ? result.OA.records.record 
+                    : [result.OA.records.record];
+                
+                articles = records.map(record => ({
+                    id: record.$.id || '',
+                    title: record.$.citation || 'No title available',
+                    journal: record.$.citation ? record.$.citation.split('.')[0] : 'Unknown journal',
+                    publicationDate: record.link ? record.link.$.updated : 'Unknown date',
+                    link: record.link ? record.link.$.href : null,
+                    license: record.$.license || 'Unknown license',
+                    format: record.link ? record.link.$.format : null
+                })).slice(0, maxResults);
+            }
+        } 
+        // If response is JSON (fallback)
+        else if (typeof response.data === 'object' && response.data.list) {
+            articles = response.data.list
+                .filter(item => item.pmid && item.title)
+                .map(item => ({
+                    id: item.pmid,
+                    title: item.title || 'No title available',
+                    authors: item.authors || 'Unknown authors',
+                    journal: item.journal || 'Unknown journal',
+                    publicationDate: item.pubdate || 'Unknown date',
+                    link: item.pmcid ? `https://www.ncbi.nlm.nih.gov/pmc/articles/${item.pmcid}/` : null
+                }))
+                .slice(0, maxResults);
+        }
+
+        if (articles.length === 0) {
+            return res.status(404).json({ 
+                message: 'No articles found matching your criteria',
+                details: 'The API returned no valid articles' 
+            });
+        }
+
+        res.json(articles);
+    } catch (error) {
+        console.error('PubMed Central Error:', error);
+        res.status(500).json({ 
+            error: 'Failed to fetch research articles',
+            details: error.message,
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
+    }
+});
+
 app.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
@@ -123,6 +201,39 @@ app.post('/notes', async (req, res) => {
         res.status(201).send('Note added');
     } catch (error) {
         res.status(401).send('Invalid token');
+    }
+});
+
+//drugs
+
+app.get('/api/drugs/fda', async (req, res) => {
+    try {
+        const { drugName } = req.query;
+        const response = await axios.get('https://api.fda.gov/drug/label.json', {
+            params: {
+                search: `openfda.generic_name:"${drugName}"`,
+                limit: 1
+            }
+        });
+
+        const drugData = response.data.results[0];
+        
+        res.json({
+            brandName: drugData.openfda?.brand_name?.[0],
+            genericName: drugData.openfda?.generic_name?.[0],
+            manufacturer: drugData.openfda?.manufacturer_name?.[0],
+            indications: drugData.indications_and_usage?.[0],
+            warnings: drugData.warnings?.[0],
+            dosageForms: drugData.openfda?.dosage_form,
+            clinicalPharmacology: drugData.clinical_pharmacology?.[0],
+            adverseReactions: drugData.adverse_reactions?.[0],
+            fdaLabelLink: `https://www.accessdata.fda.gov/scripts/cder/daf/index.cfm?event=overview.process&ApplNo=${drugData.id}`
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            error: "Failed to fetch FDA data",
+            details: error.response?.data?.error?.message || error.message 
+        });
     }
 });
 

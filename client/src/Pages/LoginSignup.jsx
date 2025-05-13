@@ -25,7 +25,6 @@
       e.preventDefault();
       try {
         await axios.post('http://localhost:4000/signup', formData);
-        alert('Sign Up successful');
         setIsSignUp(false); // Switch to Sign In view
       } catch (error) {
         console.error('Sign Up failed:', error.response?.data || error.message);
@@ -52,7 +51,7 @@
     return (
       <div>
         <Navbar/>
-        <h2>Welcome</h2>
+        
         <div className={`container-login ${isSignUp ? 'right-panel-active' : ''}`} id="container">
           <div className="form-container sign-up-container">
             <form onSubmit={handleSignUp}>
@@ -134,5 +133,7 @@
   };
   
   export default LoginSignup;
+
+
   
   
